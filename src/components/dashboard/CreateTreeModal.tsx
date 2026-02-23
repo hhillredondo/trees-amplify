@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { amplifyTreesApi } from '@/services/amplifyDataClient'
 import { useCreateTree, useTrees } from '@/hooks/useTreesApi'
@@ -25,7 +25,7 @@ export default function CreateTreeModal({ open, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ─── step 1: tree metadata ──────────────────────────────────────────
+  // ─── step 1: tree metadata (Amplify tree created here; delete on cancel if user doesn't finish) ─
   const [treeName, setTreeName] = useState('')
   const [amplifyTreeId, setAmplifyTreeId] = useState<string | null>(null)
 
@@ -53,10 +53,17 @@ export default function CreateTreeModal({ open, onClose }: Props) {
     setDescription('')
   }
 
-  function handleClose() {
+  const handleClose = useCallback(async () => {
+    if (amplifyTreeId) {
+      try {
+        await amplifyTreesApi.delete(amplifyTreeId)
+      } catch {
+        // best-effort: avoid leaving orphan Amplify tree when user cancels
+      }
+    }
     reset()
     onClose()
-  }
+  }, [amplifyTreeId, onClose])
 
   // ─── Escape key handler ───────────────────────────────────────────────
   useEffect(() => {
@@ -64,31 +71,24 @@ export default function CreateTreeModal({ open, onClose }: Props) {
 
     function handleEscape(e: KeyboardEvent) {
       if (e.key === 'Escape' && !loading) {
-        reset()
-        onClose()
+        handleClose()
       }
     }
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [open, loading, onClose])
+  }, [open, loading, onClose, amplifyTreeId, handleClose])
 
   async function handleTreeSubmit(e: { preventDefault: () => void }) {
     e.preventDefault()
-    
-    // Prevent submission if limit reached
     if (hasReachedLimit) {
       setError(`You have reached the limit of ${MAX_TREES} trees. You currently have access to ${trees.length} trees (as owner, editor, or viewer).`)
       return
     }
-    
     setError(null)
     setLoading(true)
-
     try {
-      const tree = await amplifyTreesApi.create({
-        name: treeName.trim(),
-      })
+      const tree = await amplifyTreesApi.create({ name: treeName.trim() })
       setAmplifyTreeId(tree.id)
       setStep('member')
     } catch (err) {
@@ -103,7 +103,6 @@ export default function CreateTreeModal({ open, onClose }: Props) {
     if (!amplifyTreeId) return
     setError(null)
     setLoading(true)
-
     try {
       const result = await createTree.mutateAsync({
         tree_id: amplifyTreeId,
@@ -116,9 +115,10 @@ export default function CreateTreeModal({ open, onClose }: Props) {
         pic: '',
         photos: '',
       })
-
       setPartitionKey(result.partition_key)
-      handleClose()
+      setAmplifyTreeId(null)
+      reset()
+      onClose()
       navigate({
         to: '/tree/$treeId',
         params: { treeId: amplifyTreeId },
