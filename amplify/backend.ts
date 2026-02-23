@@ -31,16 +31,19 @@ const mediaBucket = backend.storage.resources.bucket;
 const userPool = backend.auth.resources.userPool;
 const treeTable = backend.data.resources.tables["Tree"];
 
-// Allow ECS task role to generate valid presigned GetObject URLs (browser uses them to load pics/photos)
+// Allow ECS task role to generate valid presigned GetObject URLs (browser uses them to load pics/photos).
+// If 403 persists: (1) In S3 → bucket → Permissions, confirm a statement with Sid "AllowEcsTaskRoleGetObject" exists.
+// (2) In ECS → task definition, confirm the task role ARN matches the principal below (or set ECS_TASK_ROLE_ARN_FOR_S3_READ).
 const ecsTaskRoleArn =
   process.env.ECS_TASK_ROLE_ARN_FOR_S3_READ ||
   "arn:aws:iam::AWS_ACCOUNT_ID:role/ecsTaskRoleNeptuneConnect";
 mediaBucket.addToResourcePolicy(
   new iam.PolicyStatement({
+    sid: "AllowEcsTaskRoleGetObject",
     effect: iam.Effect.ALLOW,
     principals: [new iam.ArnPrincipal(ecsTaskRoleArn)],
     actions: ["s3:GetObject"],
-    resources: [`${mediaBucket.bucketArn}/trees/*`],
+    resources: [`${mediaBucket.bucketArn}/*`],
   })
 );
 
