@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Member } from '@/types'
+import { formatYearOnly } from '@/utils/dateOnly'
 
 interface MemberSearchProps {
   members: Member[]
@@ -97,8 +98,8 @@ export default function MemberSearch({ members, onSelect }: MemberSearchProps) {
                   {m.name} {m.surname}
                 </p>
                 <p className="text-xs text-[var(--color-text-tertiary)]">
-                  *{new Date(m.born).getFullYear()}
-                  {m.died ? ` — †${new Date(m.died).getFullYear()}` : ''}
+                  *{formatYearOnly(m.born)}
+                  {m.died ? ` — †${formatYearOnly(m.died)}` : ''}
                 </p>
               </div>
             </button>

@@ -11,6 +11,7 @@ import {
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import type { Gender, Member } from '@/types'
+import { subtractMonthsFromDateOnly } from '@/utils/dateOnly'
 
 type Mode = 'create-child' | 'create-parent' | 'create-spouse' | 'edit'
 
@@ -208,11 +209,7 @@ export default function MemberFormModal({
           // Use child's birth date as marriage date (or 9 months before for safety)
           let marriageDate: string
           if (childMember?.born) {
-            const childBirthDate = new Date(childMember.born)
-            // Set marriage date to 9 months before child's birth
-            const marriageDateObj = new Date(childBirthDate)
-            marriageDateObj.setMonth(marriageDateObj.getMonth() - 9)
-            marriageDate = marriageDateObj.toISOString().split('T')[0]
+            marriageDate = subtractMonthsFromDateOnly(childMember.born, 9)
           } else {
             // Fallback: use the born date from the form (shouldn't happen, but just in case)
             marriageDate = born

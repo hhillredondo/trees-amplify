@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { usePicUrl } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import type { Member, SpouseInfo } from '@/types'
+import { formatYearOnly } from '@/utils/dateOnly'
 
 interface MemberCardProps {
   readonly member: Member | SpouseInfo
@@ -12,10 +13,6 @@ interface MemberCardProps {
 
 function getInitials(name: string, surname: string): string {
   return `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase()
-}
-
-function formatYear(dateStr: string): string {
-  return new Date(dateStr).getFullYear().toString()
 }
 
 export default function MemberCard({
@@ -109,16 +106,16 @@ export default function MemberCard({
 
       {/* Lifespan */}
       <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-        *{formatYear(member.born)}
-        {member.died ? ` — †${formatYear(member.died)}` : ''}
+        *{formatYearOnly(member.born)}
+        {member.died ? ` — †${formatYearOnly(member.died)}` : ''}
       </p>
 
       {/* Marriage info for spouses */}
       {spouseInfo && (
         <p className="text-xs text-[var(--color-warning)] mt-1.5">
-          ♥ {formatYear(spouseInfo.married)}
+          ♥ {formatYearOnly(spouseInfo.married)}
           {spouseInfo.divorced
-            ? ` · div. ${formatYear(spouseInfo.divorced)}`
+            ? ` · div. ${formatYearOnly(spouseInfo.divorced)}`
             : ''}
         </p>
       )}

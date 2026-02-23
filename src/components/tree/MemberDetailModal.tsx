@@ -10,6 +10,7 @@ import {
   useDeleteMember,
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
+import { formatDateOnly, formatYearOnly, getYearFromDateOnly } from '@/utils/dateOnly'
 
 interface Props {
   readonly open: boolean
@@ -23,41 +24,16 @@ interface Props {
   readonly treeId?: string
 }
 
-function formatDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  } catch {
-    return dateStr
-  }
-}
-
-function formatYear(dateStr: string): string {
-  try {
-    return new Date(dateStr).getFullYear().toString()
-  } catch {
-    return dateStr
-  }
-}
-
 // Minimum age to have children: 12 years 9 months = (12 * 365 + 9 * 30) days = 4650 days
 const MINIMUM_AGE_FOR_CHILDREN_DAYS = 12 * 365 + 9 * 30
 
 function isTooYoungToHaveChildren(born: string, died: string | null | undefined): boolean {
-  try {
-    const bornDate = new Date(born)
-    const referenceDate = died ? new Date(died) : new Date()
-    const ageInMs = referenceDate.getTime() - bornDate.getTime()
-    const ageInDays = ageInMs / (1000 * 60 * 60 * 24)
-    return ageInDays < MINIMUM_AGE_FOR_CHILDREN_DAYS
-  } catch {
-    // If date parsing fails, default to allowing (backend will validate)
-    return false
-  }
+  if (getYearFromDateOnly(born) === null) return false
+  if (died != null && getYearFromDateOnly(died) === null) return false
+  const bornDate = new Date(born + 'T12:00:00') // noon to avoid timezone shift
+  const refDate = died ? new Date(died + 'T12:00:00') : new Date()
+  const ageInDays = (refDate.getTime() - bornDate.getTime()) / (1000 * 60 * 60 * 24)
+  return ageInDays < MINIMUM_AGE_FOR_CHILDREN_DAYS
 }
 
 export default function MemberDetailModal({
@@ -402,7 +378,7 @@ export default function MemberDetailModal({
                     <div className="flex items-center gap-2">
                       <span className="text-[var(--color-text-secondary)]">Born:</span>
                       <span className="font-medium text-[var(--color-text-primary)]">
-                        {formatDate(member.born)} ({formatYear(member.born)})
+                        {formatDateOnly(member.born)} ({formatYearOnly(member.born)})
                       </span>
                     </div>
 
@@ -410,7 +386,7 @@ export default function MemberDetailModal({
                       <div className="flex items-center gap-2">
                         <span className="text-[var(--color-text-secondary)]">Died:</span>
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {formatDate(member.died)} ({formatYear(member.died)})
+                          {formatDateOnly(member.died)} ({formatYearOnly(member.died)})
                         </span>
                       </div>
                     )}
@@ -419,8 +395,7 @@ export default function MemberDetailModal({
                       <div className="flex items-center gap-2">
                         <span className="text-[var(--color-text-secondary)]">Lifespan:</span>
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {new Date(member.died).getFullYear() -
-                            new Date(member.born).getFullYear()}{' '}
+                          {(getYearFromDateOnly(member.died) ?? 0) - (getYearFromDateOnly(member.born) ?? 0)}{' '}
                           years
                         </span>
                       </div>
