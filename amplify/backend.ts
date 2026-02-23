@@ -1,6 +1,7 @@
 import { defineBackend } from "@aws-amplify/backend";
 import { RemovalPolicy } from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { auth } from "./auth/resource";
 import { customFunction } from "./custom-function/resource";
@@ -29,6 +30,19 @@ const ssmParamPrefix = `/amplify/${appId}/${branch}`;
 const mediaBucket = backend.storage.resources.bucket;
 const userPool = backend.auth.resources.userPool;
 const treeTable = backend.data.resources.tables["Tree"];
+
+// Allow ECS task role to generate valid presigned GetObject URLs (browser uses them to load pics/photos)
+const ecsTaskRoleArn =
+  process.env.ECS_TASK_ROLE_ARN_FOR_S3_READ ||
+  "arn:aws:iam::AWS_ACCOUNT_ID:role/ecsTaskRoleNeptuneConnect";
+mediaBucket.addToResourcePolicy(
+  new iam.PolicyStatement({
+    effect: iam.Effect.ALLOW,
+    principals: [new iam.ArnPrincipal(ecsTaskRoleArn)],
+    actions: ["s3:GetObject"],
+    resources: [`${mediaBucket.bucketArn}/trees/*`],
+  })
+);
 
 new ssm.StringParameter(customStack, "MediaBucketNameParam", {
   parameterName: `${ssmParamPrefix}/MediaBucketName`,
