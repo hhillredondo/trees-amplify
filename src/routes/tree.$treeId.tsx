@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { createRoute, Outlet } from '@tanstack/react-router'
 import { Route as rootRoute } from './__root'
 import { useTrees } from '@/hooks/useTreesApi'
 import { setPartitionKey } from '@/services/flaskService'
+import { resolveShortId } from '@/utils/shortId'
 
 export const Route = createRoute({
   getParentRoute: () => rootRoute,
@@ -10,19 +11,18 @@ export const Route = createRoute({
   component: TreeLayout,
 })
 
-/**
- * Layout route for /tree/:treeId/*
- *
- * Responsibilities:
- *  - Look up the tree from the cached trees list
- *  - Set the global partition key for Flask API requests
- *  - Render child routes via <Outlet />
- */
 function TreeLayout() {
-  const { treeId } = Route.useParams()
+  const { treeId: shortId } = Route.useParams()
   const { data: treesData } = useTrees()
 
-  const tree = treesData?.trees.find((t) => t.tree_id === treeId)
+  const allTreeIds = useMemo(
+    () => treesData?.trees.map((t) => t.tree_id) ?? [],
+    [treesData],
+  )
+  const tree = useMemo(() => {
+    const realId = resolveShortId(shortId, allTreeIds)
+    return treesData?.trees.find((t) => t.tree_id === realId)
+  }, [shortId, allTreeIds, treesData])
 
   useEffect(() => {
     if (tree?.partition_key) {

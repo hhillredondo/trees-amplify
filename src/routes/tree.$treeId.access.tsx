@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createRoute, Link } from '@tanstack/react-router'
 import { Route as treeRoute } from './tree.$treeId'
 import { useTrees, useRoles, useAddRole, useRemoveRole } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
+import { resolveShortId } from '@/utils/shortId'
 import type { Role } from '@/types'
 
 export const Route = createRoute({
@@ -12,8 +13,16 @@ export const Route = createRoute({
 })
 
 function AccessControlPage() {
-  const { treeId } = Route.useParams()
+  const { treeId: shortId } = Route.useParams()
   const { data: treesData } = useTrees()
+  const allTreeIds = useMemo(
+    () => treesData?.trees.map((t) => t.tree_id) ?? [],
+    [treesData],
+  )
+  const treeId = useMemo(
+    () => resolveShortId(shortId, allTreeIds),
+    [shortId, allTreeIds],
+  )
   const tree = treesData?.trees.find((t) => t.tree_id === treeId)
   const partitionKey = tree?.partition_key ?? getPartitionKey()
   const isOwner = tree?.role === 'owner'
@@ -134,7 +143,7 @@ function AccessControlPage() {
         </div>
         <Link
           to="/tree/$treeId"
-          params={{ treeId }}
+          params={{ treeId: shortId }}
           search={{ memberId: undefined }}
           className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 transition-colors"
         >

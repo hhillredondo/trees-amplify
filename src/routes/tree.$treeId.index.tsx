@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Route as treeRoute } from './tree.$treeId'
 import { useTrees, useMembers, useDirectRelations } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
+import { resolveShortId } from '@/utils/shortId'
 import MemberCard from '@/components/tree/MemberCard'
 import MemberSearch from '@/components/tree/MemberSearch'
 import DeleteTreeModal from '@/components/tree/DeleteTreeModal'
@@ -22,7 +23,7 @@ export const Route = createRoute({
 })
 
 function TreeViewPage() {
-  const { treeId } = Route.useParams()
+  const { treeId: shortId } = Route.useParams()
   const { memberId: searchMemberId } = Route.useSearch()
   const navigate = useNavigate()
 
@@ -44,6 +45,14 @@ function TreeViewPage() {
 
   // ─── Tree info ────────────────────────────────────────────────────
   const { data: treesData } = useTrees()
+  const allTreeIds = useMemo(
+    () => treesData?.trees.map((t) => t.tree_id) ?? [],
+    [treesData],
+  )
+  const treeId = useMemo(
+    () => resolveShortId(shortId, allTreeIds),
+    [shortId, allTreeIds],
+  )
   const tree = treesData?.trees.find((t) => t.tree_id === treeId)
   const partitionKey = tree?.partition_key ?? getPartitionKey()
   const treeName = tree?.name || 'Unnamed Tree'
@@ -73,7 +82,7 @@ function TreeViewPage() {
   function handleMemberClick(memberId: string) {
     navigate({
       to: '/tree/$treeId',
-      params: { treeId },
+      params: { treeId: shortId },
       search: { memberId },
     })
   }
@@ -156,7 +165,7 @@ function TreeViewPage() {
           {isOwner && (
             <Link
               to="/tree/$treeId/access"
-              params={{ treeId }}
+              params={{ treeId: shortId }}
               className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-[var(--color-surface)] transition-colors shrink-0"
             >
               <svg
@@ -463,7 +472,7 @@ function TreeViewPage() {
       <DeleteTreeModal
         open={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        treeId={treeId}
+        treeId={treeId ?? ''}
         treeName={treeName}
       />
 
@@ -471,7 +480,7 @@ function TreeViewPage() {
       <QuitTreeModal
         open={showQuitModal}
         onClose={() => setShowQuitModal(false)}
-        treeId={treeId}
+        treeId={treeId ?? ''}
         treeName={treeName}
       />
 

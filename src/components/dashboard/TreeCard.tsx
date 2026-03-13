@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { setPartitionKey } from '@/services/flaskService'
+import { encodeUuid } from '@/utils/shortId'
 import type { TreeSummary, Role } from '@/types'
 
 const roleBadge: Record<Role, { label: string; className: string }> = {
@@ -23,7 +24,7 @@ export default function TreeCard({ tree }: { readonly tree: TreeSummary }) {
   return (
     <Link
       to="/tree/$treeId"
-      params={{ treeId: tree.tree_id }}
+      params={{ treeId: encodeUuid(tree.tree_id) }}
       search={{ memberId: undefined }}
       onClick={() => {
         if (tree.partition_key) setPartitionKey(tree.partition_key)

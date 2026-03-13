@@ -27,6 +27,16 @@ import type {
 
 // ─── Core HTTP client ────────────────────────────────────────────────────────
 
+export class HttpError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'HttpError'
+  }
+}
+
 const BASE_URL = import.meta.env.VITE_FLASK_API_URL || ''
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -78,19 +88,19 @@ async function request<T>(endpoint: string, opts: RequestOptions = {}): Promise<
       
       // Handle specific error codes
       if (response.status === 401) {
-        throw new Error('Authentication required. Please sign in again.')
+        throw new HttpError(401, 'Authentication required. Please sign in again.')
       } else if (response.status === 403) {
         // Use the actual error message from backend (e.g., tree limit, storage limit)
-        throw new Error(message || 'You do not have permission to perform this action.')
+        throw new HttpError(403, message || 'You do not have permission to perform this action.')
       } else if (response.status === 404) {
-        throw new Error('Resource not found.')
+        throw new HttpError(404, 'Resource not found.')
       } else if (response.status === 409) {
-        throw new Error(message || 'Conflict: This operation cannot be completed.')
+        throw new HttpError(409, message || 'Conflict: This operation cannot be completed.')
       } else if (response.status >= 500) {
-        throw new Error('Server error. Please try again later.')
+        throw new HttpError(response.status, 'Server error. Please try again later.')
       }
       
-      throw new Error(message)
+      throw new HttpError(response.status, message)
     }
 
     // Some endpoints return plain text (e.g. update spouse relation)

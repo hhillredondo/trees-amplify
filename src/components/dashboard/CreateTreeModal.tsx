@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { amplifyTreesApi } from '@/services/amplifyDataClient'
 import { useCreateTree, useTrees } from '@/hooks/useTreesApi'
 import { setPartitionKey } from '@/services/flaskService'
+import { encodeUuid } from '@/utils/shortId'
 import type { Gender } from '@/types'
 
 interface Props {
@@ -121,7 +122,7 @@ export default function CreateTreeModal({ open, onClose }: Props) {
       onClose()
       navigate({
         to: '/tree/$treeId',
-        params: { treeId: amplifyTreeId },
+        params: { treeId: encodeUuid(amplifyTreeId) },
         search: { memberId: undefined },
       })
     } catch (err) {
