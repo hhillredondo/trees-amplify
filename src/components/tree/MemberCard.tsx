@@ -107,7 +107,9 @@ export default function MemberCard({
       {/* Lifespan */}
       <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
         *{formatYearOnly(member.born)}
+        {member.birth_location ? ` ${member.birth_location}` : ''}
         {member.died ? ` — †${formatYearOnly(member.died)}` : ''}
+        {member.died && member.death_location ? ` ${member.death_location}` : ''}
       </p>
 
       {/* Marriage info for spouses */}

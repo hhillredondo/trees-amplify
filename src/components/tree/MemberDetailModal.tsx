@@ -7,6 +7,8 @@ import {
   usePhotosUrls,
   useUploadPic,
   useUploadPhotos,
+  useDocumentsUrls,
+  useUploadDocuments,
   useDeleteMember,
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
@@ -56,13 +58,16 @@ export default function MemberDetailModal({
   )
   const { data: picData, isLoading: picLoading } = usePicUrl(partitionKey, memberId)
   const { data: photosData, isLoading: photosLoading } = usePhotosUrls(partitionKey, memberId)
+  const { data: docsData, isLoading: docsLoading } = useDocumentsUrls(partitionKey, memberId)
   const uploadPic = useUploadPic(partitionKey)
   const uploadPhotos = useUploadPhotos(partitionKey)
+  const uploadDocuments = useUploadDocuments(partitionKey)
   const deleteMember = useDeleteMember(partitionKey)
 
   const [imageError, setImageError] = useState<string | null>(null)
   const [uploadingPic, setUploadingPic] = useState(false)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
+  const [uploadingDocs, setUploadingDocs] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [uploadProgress, setUploadProgress] = useState<{
     total: number
@@ -78,6 +83,7 @@ export default function MemberDetailModal({
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const picInputRef = useRef<HTMLInputElement>(null)
   const photosInputRef = useRef<HTMLInputElement>(null)
+  const docsInputRef = useRef<HTMLInputElement>(null)
 
   // ─── Escape key handler ───────────────────────────────────────────────
   useEffect(() => {
@@ -184,11 +190,32 @@ export default function MemberDetailModal({
     }
   }
 
+  const ALLOWED_DOC_TYPES = '.pdf,.doc,.docx,.txt,.xls,.xlsx'
+
+  async function handleDocsUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0 || !memberId) return
+
+    setUploadError(null)
+    setUploadingDocs(true)
+
+    try {
+      await uploadDocuments.mutateAsync({ memberId, files })
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Failed to upload documents')
+    } finally {
+      setUploadingDocs(false)
+      if (docsInputRef.current) docsInputRef.current.value = ''
+    }
+  }
+
   if (!open || !memberId) return null
 
-  const isLoading = memberLoading || relationsLoading || picLoading || photosLoading
+  const isLoading = memberLoading || relationsLoading || picLoading || photosLoading || docsLoading
   const picUrl = picData?.url || null
   const photosUrls = photosData?.urls ?? []
+  const docsUrls = docsData?.urls ?? []
+  const docsKeys = docsData?.keys ?? []
   const parentsCount = relations?.parents.length ?? 0
   const hasMaxParents = parentsCount >= 2
   const memberName = member ? `${member.name} ${member.surname}` : ''
@@ -375,10 +402,25 @@ export default function MemberDetailModal({
                       <span className="font-medium text-[var(--color-text-primary)] capitalize">{member.gender}</span>
                     </div>
 
+                    {member.profession && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--color-text-secondary)]">Profession:</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{member.profession}</span>
+                      </div>
+                    )}
+
+                    {member.height != null && member.height !== '' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--color-text-secondary)]">Height:</span>
+                        <span className="font-medium text-[var(--color-text-primary)]">{member.height} cm</span>
+                      </div>
+                    )}
+
                     <div className="flex items-center gap-2">
                       <span className="text-[var(--color-text-secondary)]">Born:</span>
                       <span className="font-medium text-[var(--color-text-primary)]">
                         {formatDateOnly(member.born)} ({formatYearOnly(member.born)})
+                        {member.birth_location && ` — ${member.birth_location}`}
                       </span>
                     </div>
 
@@ -387,6 +429,7 @@ export default function MemberDetailModal({
                         <span className="text-[var(--color-text-secondary)]">Died:</span>
                         <span className="font-medium text-[var(--color-text-primary)]">
                           {formatDateOnly(member.died)} ({formatYearOnly(member.died)})
+                          {member.death_location && ` — ${member.death_location}`}
                         </span>
                       </div>
                     )}
@@ -502,6 +545,64 @@ export default function MemberDetailModal({
                 ) : !uploadingPhotos ? (
                   <div className="text-center py-8 text-[var(--color-text-tertiary)] text-sm border-2 border-dashed border-[var(--color-border)] rounded-lg">
                     No photos available. Click "Add Photos" to upload some.
+                  </div>
+                ) : null}
+              </div>
+
+              {/* ── Documents Section ──────────────────────────────────── */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    Documents {docsUrls.length > 0 && `(${docsUrls.length})`}
+                  </h4>
+                  {canEdit && (
+                    <>
+                      <input
+                        ref={docsInputRef}
+                        type="file"
+                        accept={ALLOWED_DOC_TYPES}
+                        multiple
+                        onChange={handleDocsUpload}
+                        disabled={uploadingDocs}
+                        className="hidden"
+                        id="upload-docs"
+                      />
+                      <label
+                        htmlFor="upload-docs"
+                        className={`text-xs text-[var(--color-accent)] hover:text-[var(--color-accent-hover)] cursor-pointer px-2 py-1 rounded hover:bg-[var(--color-accent)]/10 transition-colors ${
+                          uploadingDocs ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {uploadingDocs ? 'Uploading…' : '+ Add Documents'}
+                      </label>
+                    </>
+                  )}
+                </div>
+
+                {docsUrls.length > 0 ? (
+                  <div className="space-y-2">
+                    {docsUrls.map((url, idx) => {
+                      const key = docsKeys[idx] ?? ''
+                      const fileName = key.split('/').pop() ?? `Document ${idx + 1}`
+                      return (
+                        <a
+                          key={idx}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] hover:bg-[var(--color-surface-elevated)] transition-colors"
+                        >
+                          <svg className="w-5 h-5 shrink-0 text-[var(--color-text-tertiary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-sm text-[var(--color-accent)] truncate">{fileName}</span>
+                        </a>
+                      )
+                    })}
+                  </div>
+                ) : !uploadingDocs ? (
+                  <div className="text-center py-8 text-[var(--color-text-tertiary)] text-sm border-2 border-dashed border-[var(--color-border)] rounded-lg">
+                    No documents available. Click "Add Documents" to upload some.
                   </div>
                 ) : null}
               </div>

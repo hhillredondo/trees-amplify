@@ -45,6 +45,8 @@ export const queryKeys = {
     ['picUrl', partitionKey, memberId] as const,
   photosUrls: (partitionKey: string, memberId: string) =>
     ['photosUrls', partitionKey, memberId] as const,
+  documentsUrls: (partitionKey: string, memberId: string) =>
+    ['documentsUrls', partitionKey, memberId] as const,
   authMe: ['auth', 'me'] as const,
 }
 
@@ -442,6 +444,40 @@ export function useUploadPhotos(partitionKey: string | null) {
       if (partitionKey) {
         qc.invalidateQueries({
           queryKey: queryKeys.photosUrls(partitionKey, variables.memberId),
+        })
+        qc.invalidateQueries({
+          queryKey: queryKeys.member(partitionKey, variables.memberId),
+        })
+      }
+    },
+  })
+}
+
+export function useDocumentsUrls(
+  partitionKey: string | null,
+  memberId: string | null,
+  options?: Partial<UseQueryOptions<import('@/types').DocumentsUrlsResponse>>,
+) {
+  return useQuery({
+    queryKey: queryKeys.documentsUrls(partitionKey ?? '', memberId ?? ''),
+    queryFn: () => mediaApi.getDocumentsUrls(memberId!),
+    enabled: !!partitionKey && !!memberId,
+    ...options,
+  })
+}
+
+export function useUploadDocuments(partitionKey: string | null) {
+  const qc = useQueryClient()
+  const lockWrapper = useEditorLockWrapper(partitionKey, ({ memberId, files }: { memberId: string; files: File[] }) =>
+    mediaApi.uploadDocuments(memberId, files),
+  )
+
+  return useMutation({
+    mutationFn: lockWrapper,
+    onSuccess: (_data, variables) => {
+      if (partitionKey) {
+        qc.invalidateQueries({
+          queryKey: queryKeys.documentsUrls(partitionKey, variables.memberId),
         })
         qc.invalidateQueries({
           queryKey: queryKeys.member(partitionKey, variables.memberId),

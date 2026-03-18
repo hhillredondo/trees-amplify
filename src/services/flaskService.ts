@@ -10,6 +10,8 @@ import type {
   CreateTreeInput,
   CreateTreeResponse,
   DirectRelations,
+  DocumentsUploadResponse,
+  DocumentsUrlsResponse,
   ListRolesResponse,
   ListTreesResponse,
   LockStatusResponse,
@@ -330,6 +332,27 @@ export const mediaApi = {
     if (expiresIn) params.set('expires_in', String(expiresIn))
     return request<PhotosUrlsResponse>(
       `/member/photos-urls?${params}`,
+      withPartition(),
+    )
+  },
+
+  uploadDocuments: (memberId: string, files: File[]) => {
+    const form = new FormData()
+    form.append('member_id', memberId)
+    files.forEach((f) => form.append('files', f))
+    return request<DocumentsUploadResponse>('/member/documents', {
+      ...withPartition(),
+      method: 'POST',
+      body: form,
+      isFormData: true,
+    })
+  },
+
+  getDocumentsUrls: (memberId: string, expiresIn?: number) => {
+    const params = new URLSearchParams({ member_id: memberId })
+    if (expiresIn) params.set('expires_in', String(expiresIn))
+    return request<DocumentsUrlsResponse>(
+      `/member/documents-urls?${params}`,
       withPartition(),
     )
   },

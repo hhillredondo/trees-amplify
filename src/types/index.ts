@@ -16,6 +16,11 @@ export interface Member {
   died?: ISODateString | null
   pic: string
   photos: string
+  profession?: string | null
+  birth_location?: string | null
+  death_location?: string | null
+  height?: number | null
+  documents?: string | null
   _partitionKey?: string
 }
 
@@ -29,6 +34,10 @@ export interface CreateMemberInput {
   died?: ISODateString | null
   pic: string
   photos: string
+  profession?: string | null
+  birth_location?: string | null
+  death_location?: string | null
+  height?: number | null
 }
 
 /** Fields that can be updated on an existing member. born & died are immutable. */
@@ -39,6 +48,10 @@ export interface UpdateMemberInput {
   description?: string
   pic?: string
   photos?: string
+  profession?: string | null
+  birth_location?: string | null
+  death_location?: string | null
+  height?: number | null
 }
 
 // ─── Relationships ───────────────────────────────────────────────────────────
@@ -192,6 +205,19 @@ export interface PicUrlResponse {
 
 export interface PhotosUrlsResponse {
   photos: string
+  urls: string[]
+  keys: string[]
+  expires_in: number
+}
+
+export interface DocumentsUploadResponse {
+  documents: string
+  uploaded: string[]
+  uploaded_keys: string[]
+}
+
+export interface DocumentsUrlsResponse {
+  documents: string
   urls: string[]
   keys: string[]
   expires_in: number

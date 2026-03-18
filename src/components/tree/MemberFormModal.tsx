@@ -8,6 +8,7 @@ import {
   useDirectRelations,
   useUploadPic,
   useUploadPhotos,
+  useUploadDocuments,
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import type { Gender, Member } from '@/types'
@@ -55,6 +56,7 @@ export default function MemberFormModal({
   const updateMember = useUpdateMember(partitionKey)
   const uploadPic = useUploadPic(partitionKey)
   const uploadPhotos = useUploadPhotos(partitionKey)
+  const uploadDocuments = useUploadDocuments(partitionKey)
 
   // ─── Form state ────────────────────────────────────────────────────
   const [name, setName] = useState('')
@@ -63,16 +65,22 @@ export default function MemberFormModal({
   const [born, setBorn] = useState('')
   const [died, setDied] = useState('')
   const [description, setDescription] = useState('')
-  const [married, setMarried] = useState('') // For spouse creation
-  const [divorced, setDivorced] = useState('') // For spouse creation
+  const [married, setMarried] = useState('')
+  const [divorced, setDivorced] = useState('')
+  const [profession, setProfession] = useState('')
+  const [birthLocation, setBirthLocation] = useState('')
+  const [deathLocation, setDeathLocation] = useState('')
+  const [height, setHeight] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // ─── File upload state ─────────────────────────────────────────────
   const [picFile, setPicFile] = useState<File | null>(null)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [docFiles, setDocFiles] = useState<File[]>([])
   const picInputRef = useRef<HTMLInputElement>(null)
   const photosInputRef = useRef<HTMLInputElement>(null)
+  const docsInputRef = useRef<HTMLInputElement>(null)
 
   // ─── Escape key handler ───────────────────────────────────────────────
   useEffect(() => {
@@ -94,11 +102,14 @@ export default function MemberFormModal({
       setName(existingMember.name)
       setSurname(existingMember.surname)
       setGender(existingMember.gender)
-      setBorn(existingMember.born.split('T')[0]) // Extract date part
+      setBorn(existingMember.born.split('T')[0])
       setDied(existingMember.died ? existingMember.died.split('T')[0] : '')
       setDescription(existingMember.description)
+      setProfession(existingMember.profession ?? '')
+      setBirthLocation(existingMember.birth_location ?? '')
+      setDeathLocation(existingMember.death_location ?? '')
+      setHeight(existingMember.height != null && existingMember.height !== '' ? String(existingMember.height) : '')
     } else if (!isEdit && open) {
-      // Reset form for create mode
       setName('')
       setSurname('')
       setGender('male')
@@ -107,8 +118,13 @@ export default function MemberFormModal({
       setDescription('')
       setMarried('')
       setDivorced('')
+      setProfession('')
+      setBirthLocation('')
+      setDeathLocation('')
+      setHeight('')
       setPicFile(null)
       setPhotoFiles([])
+      setDocFiles([])
     }
   }, [isEdit, existingMember, open])
 
@@ -118,8 +134,10 @@ export default function MemberFormModal({
     setLoading(false)
     setPicFile(null)
     setPhotoFiles([])
+    setDocFiles([])
     if (picInputRef.current) picInputRef.current.value = ''
     if (photosInputRef.current) photosInputRef.current.value = ''
+    if (docsInputRef.current) docsInputRef.current.value = ''
   }
 
   function handleClose() {
@@ -142,13 +160,19 @@ export default function MemberFormModal({
   function handlePhotosChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
-      // Validate all are images
       const invalidFiles = files.filter((f) => !f.type.startsWith('image/'))
       if (invalidFiles.length > 0) {
         setError('Please select only image files')
         return
       }
       setPhotoFiles(files)
+    }
+  }
+
+  function handleDocsChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (files.length > 0) {
+      setDocFiles(files)
     }
   }
 
@@ -168,17 +192,26 @@ export default function MemberFormModal({
 
       let createdMemberId: string | undefined
 
+      const optionalFields = {
+        ...(profession.trim() ? { profession: profession.trim() } : {}),
+        ...(birthLocation.trim() ? { birth_location: birthLocation.trim() } : {}),
+        ...(deathLocation.trim() ? { death_location: deathLocation.trim() } : {}),
+        ...(height !== '' ? { height: Number(height) } : {}),
+      }
+
       if (isEdit && memberId) {
-        // Update existing member
         await updateMember.mutateAsync({
           id: memberId,
           name: name.trim(),
           surname: surname.trim(),
           description: description.trim() || undefined,
+          profession: profession.trim() || null,
+          birth_location: birthLocation.trim() || null,
+          death_location: deathLocation.trim() || null,
+          height: height !== '' ? Number(height) : null,
         })
         createdMemberId = memberId
       } else if (mode === 'create-child' && relatedMemberId) {
-        // Create child
         const childResult = await createChild.mutateAsync({
           parent_id: relatedMemberId,
           name: name.trim(),
@@ -189,6 +222,7 @@ export default function MemberFormModal({
           died: diedDate,
           pic: '',
           photos: '',
+          ...optionalFields,
         })
         createdMemberId = childResult.id
       } else if (mode === 'create-parent' && relatedMemberId) {
@@ -227,10 +261,10 @@ export default function MemberFormModal({
             photos: '',
             married: `${marriageDate}T00:00:00Z`,
             divorced: null,
+            ...optionalFields,
           })
           createdMemberId = spouseResult.id
         } else if (parentsCount === 0) {
-          // No parents exist, create parent normally
           const parentResult = await createParent.mutateAsync({
             child_id: relatedMemberId,
             name: name.trim(),
@@ -241,6 +275,7 @@ export default function MemberFormModal({
             died: diedDate,
             pic: '',
             photos: '',
+            ...optionalFields,
           })
           createdMemberId = parentResult.id
         } else {
@@ -268,6 +303,7 @@ export default function MemberFormModal({
           photos: '',
           married: `${married}T00:00:00Z`,
           divorced: divorced ? `${divorced}T00:00:00Z` : null,
+          ...optionalFields,
         })
         createdMemberId = spouseResult.id
       }
@@ -280,6 +316,9 @@ export default function MemberFormModal({
           }
           if (photoFiles.length > 0) {
             await uploadPhotos.mutateAsync({ memberId: createdMemberId, files: photoFiles })
+          }
+          if (docFiles.length > 0) {
+            await uploadDocuments.mutateAsync({ memberId: createdMemberId, files: docFiles })
           }
         } catch (uploadErr) {
           // Don't fail the whole operation if upload fails, just log it
@@ -510,6 +549,79 @@ export default function MemberFormModal({
                 />
               </div>
 
+              {/* ── Additional Details ────────────────────────────────── */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="profession"
+                    className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                  >
+                    Profession <span className="text-[var(--color-text-tertiary)]">(optional)</span>
+                  </label>
+                  <input
+                    id="profession"
+                    type="text"
+                    value={profession}
+                    onChange={(e) => setProfession(e.target.value)}
+                    placeholder="e.g. Doctor, Carpenter"
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="height"
+                    className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                  >
+                    Height (cm) <span className="text-[var(--color-text-tertiary)]">(optional)</span>
+                  </label>
+                  <input
+                    id="height"
+                    type="number"
+                    min="0"
+                    max="300"
+                    value={height}
+                    onChange={(e) => setHeight(e.target.value)}
+                    placeholder="e.g. 175"
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="birthLocation"
+                    className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                  >
+                    Birth Location <span className="text-[var(--color-text-tertiary)]">(optional)</span>
+                  </label>
+                  <input
+                    id="birthLocation"
+                    type="text"
+                    value={birthLocation}
+                    onChange={(e) => setBirthLocation(e.target.value)}
+                    placeholder="e.g. London, Madrid"
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="deathLocation"
+                    className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                  >
+                    Death Location <span className="text-[var(--color-text-tertiary)]">(optional)</span>
+                  </label>
+                  <input
+                    id="deathLocation"
+                    type="text"
+                    value={deathLocation}
+                    onChange={(e) => setDeathLocation(e.target.value)}
+                    placeholder="e.g. London, Madrid"
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
+                  />
+                </div>
+              </div>
+
               {/* ── Photo Uploads ───────────────────────────────────────── */}
               <div className="space-y-4 pt-2 border-t border-[var(--color-border)]">
                 <div>
@@ -553,6 +665,29 @@ export default function MemberFormModal({
                   {photoFiles.length > 0 && (
                     <p className="text-xs text-[var(--color-text-secondary)] mt-1">
                       Selected {photoFiles.length} file{photoFiles.length > 1 ? 's' : ''}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="documents"
+                    className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+                  >
+                    Documents <span className="text-[var(--color-text-tertiary)]">(optional)</span>
+                  </label>
+                  <input
+                    id="documents"
+                    ref={docsInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.xls,.xlsx"
+                    multiple
+                    onChange={handleDocsChange}
+                    className="w-full text-sm text-[var(--color-text-primary)] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[var(--color-accent)]/10 file:text-[var(--color-accent)] hover:file:bg-[var(--color-accent)]/20 file:cursor-pointer cursor-pointer"
+                  />
+                  {docFiles.length > 0 && (
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                      Selected {docFiles.length} document{docFiles.length > 1 ? 's' : ''}
                     </p>
                   )}
                 </div>
