@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
 import {
   useCreateChild,
   useCreateParent,
   useCreateSpouse,
-  useUpdateMember,
-  useMember,
   useDirectRelations,
-  useUploadPic,
-  useUploadPhotos,
+  useMember,
+  useUpdateMember,
   useUploadDocuments,
+  useUploadPhotos,
+  useUploadPic,
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
-import type { Gender, Member } from '@/types'
+import type { Gender } from '@/types'
 import { subtractMonthsFromDateOnly } from '@/utils/dateOnly'
+import { useEffect, useRef, useState } from 'react'
 
 type Mode = 'create-child' | 'create-parent' | 'create-spouse' | 'edit'
 
@@ -108,7 +108,7 @@ export default function MemberFormModal({
       setProfession(existingMember.profession ?? '')
       setBirthLocation(existingMember.birth_location ?? '')
       setDeathLocation(existingMember.death_location ?? '')
-      setHeight(existingMember.height != null && existingMember.height !== '' ? String(existingMember.height) : '')
+      setHeight(existingMember.height ?? '')
     } else if (!isEdit && open) {
       setName('')
       setSurname('')
@@ -196,7 +196,7 @@ export default function MemberFormModal({
         ...(profession.trim() ? { profession: profession.trim() } : {}),
         ...(birthLocation.trim() ? { birth_location: birthLocation.trim() } : {}),
         ...(deathLocation.trim() ? { death_location: deathLocation.trim() } : {}),
-        ...(height !== '' ? { height: Number(height) } : {}),
+        ...(height !== '' ? { height } : {}),
       }
 
       if (isEdit && memberId) {
@@ -208,7 +208,7 @@ export default function MemberFormModal({
           profession: profession.trim() || null,
           birth_location: birthLocation.trim() || null,
           death_location: deathLocation.trim() || null,
-          height: height !== '' ? Number(height) : null,
+          height: height !== '' ? height : null,
         })
         createdMemberId = memberId
       } else if (mode === 'create-child' && relatedMemberId) {
@@ -360,7 +360,7 @@ export default function MemberFormModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-[var(--color-surface-elevated)] rounded-2xl shadow-2xl w-full max-w-2xl min-w-[400px] mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-in slide-up duration-300">
+      <div className="relative bg-[var(--color-surface-elevated)] rounded-2xl shadow-2xl w-full max-w-4xl min-w-[400px] mx-4 max-h-[90vh] overflow-hidden flex flex-col animate-in slide-up duration-300">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)] shrink-0">
           <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">{getTitle()}</h2>
@@ -411,7 +411,6 @@ export default function MemberFormModal({
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="John"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>
@@ -428,7 +427,6 @@ export default function MemberFormModal({
                     required
                     value={surname}
                     onChange={(e) => setSurname(e.target.value)}
-                    placeholder="Smith"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>
@@ -544,7 +542,6 @@ export default function MemberFormModal({
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell us about this person…"
                   className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent resize-none"
                 />
               </div>
@@ -563,7 +560,6 @@ export default function MemberFormModal({
                     type="text"
                     value={profession}
                     onChange={(e) => setProfession(e.target.value)}
-                    placeholder="e.g. Doctor, Carpenter"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>
@@ -581,7 +577,6 @@ export default function MemberFormModal({
                     max="300"
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
-                    placeholder="e.g. 175"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>
@@ -600,7 +595,6 @@ export default function MemberFormModal({
                     type="text"
                     value={birthLocation}
                     onChange={(e) => setBirthLocation(e.target.value)}
-                    placeholder="e.g. London, Madrid"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>
@@ -616,7 +610,6 @@ export default function MemberFormModal({
                     type="text"
                     value={deathLocation}
                     onChange={(e) => setDeathLocation(e.target.value)}
-                    placeholder="e.g. London, Madrid"
                     className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-elevated)] text-[var(--color-text-primary)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:border-transparent"
                   />
                 </div>

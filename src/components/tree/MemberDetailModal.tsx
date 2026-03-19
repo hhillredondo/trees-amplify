@@ -12,7 +12,7 @@ import {
   useDeleteMember,
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
-import { formatDateOnly, formatYearOnly, getYearFromDateOnly } from '@/utils/dateOnly'
+import { formatDateOnly, getYearFromDateOnly } from '@/utils/dateOnly'
 
 interface Props {
   readonly open: boolean
@@ -419,7 +419,7 @@ export default function MemberDetailModal({
                     <div className="flex items-center gap-2">
                       <span className="text-[var(--color-text-secondary)]">Born:</span>
                       <span className="font-medium text-[var(--color-text-primary)]">
-                        {formatDateOnly(member.born)} ({formatYearOnly(member.born)})
+                        {formatDateOnly(member.born)}
                         {member.birth_location && ` — ${member.birth_location}`}
                       </span>
                     </div>
@@ -428,7 +428,7 @@ export default function MemberDetailModal({
                       <div className="flex items-center gap-2">
                         <span className="text-[var(--color-text-secondary)]">Died:</span>
                         <span className="font-medium text-[var(--color-text-primary)]">
-                          {formatDateOnly(member.died)} ({formatYearOnly(member.died)})
+                          {formatDateOnly(member.died)}
                           {member.death_location && ` — ${member.death_location}`}
                         </span>
                       </div>

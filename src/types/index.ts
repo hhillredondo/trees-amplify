@@ -19,7 +19,7 @@ export interface Member {
   profession?: string | null
   birth_location?: string | null
   death_location?: string | null
-  height?: number | null
+  height?: string | null
   documents?: string | null
   _partitionKey?: string
 }
@@ -37,7 +37,7 @@ export interface CreateMemberInput {
   profession?: string | null
   birth_location?: string | null
   death_location?: string | null
-  height?: number | null
+  height?: string | null
 }
 
 /** Fields that can be updated on an existing member. born & died are immutable. */
@@ -51,7 +51,7 @@ export interface UpdateMemberInput {
   profession?: string | null
   birth_location?: string | null
   death_location?: string | null
-  height?: number | null
+  height?: string | null
 }
 
 // ─── Relationships ───────────────────────────────────────────────────────────
