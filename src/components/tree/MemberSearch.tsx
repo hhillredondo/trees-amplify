@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Member } from '@/types'
 import { formatYearOnly } from '@/utils/dateOnly'
+import DefaultAvatar from './DefaultAvatar'
 
 interface MemberSearchProps {
   members: Member[]
@@ -83,16 +84,7 @@ export default function MemberSearch({ members, onSelect }: MemberSearchProps) {
               }}
               className="w-full px-3 py-2.5 text-left hover:bg-[var(--color-surface)] flex items-center gap-3 text-sm transition-colors cursor-pointer"
             >
-              <div
-                className={`
-                  w-8 h-8 rounded-full flex items-center justify-center
-                  text-white text-xs font-medium shrink-0
-                  ${m.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'}
-                `}
-              >
-                {m.name.charAt(0)}
-                {m.surname.charAt(0)}
-              </div>
+              <DefaultAvatar gender={m.gender} className="w-8 h-8 rounded-full shrink-0" />
               <div className="min-w-0">
                 <p className="font-medium text-[var(--color-text-primary)] truncate">
                   {m.name} {m.surname}

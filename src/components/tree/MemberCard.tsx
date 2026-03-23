@@ -3,16 +3,13 @@ import { usePicUrl } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import type { Member, SpouseInfo } from '@/types'
 import { formatYearOnly } from '@/utils/dateOnly'
+import DefaultAvatar from './DefaultAvatar'
 
 interface MemberCardProps {
   readonly member: Member | SpouseInfo
   readonly isFocused?: boolean
   readonly onClick?: () => void
   readonly onViewDetails?: () => void
-}
-
-function getInitials(name: string, surname: string): string {
-  return `${name.charAt(0)}${surname.charAt(0)}`.toUpperCase()
 }
 
 export default function MemberCard({
@@ -24,8 +21,6 @@ export default function MemberCard({
   const partitionKey = getPartitionKey()
   const { data: picData } = usePicUrl(partitionKey, member.id)
   const [imageError, setImageError] = useState(false)
-  const initials = getInitials(member.name, member.surname)
-  const isMale = member.gender === 'male'
   const picUrl = picData?.url || null
   const showPic = picUrl && !imageError
 
@@ -75,13 +70,7 @@ export default function MemberCard({
         className="flex flex-col items-center w-full cursor-pointer"
       >
       {/* Avatar */}
-      <div
-        className={`
-          w-20 h-20 rounded-full flex items-center justify-center
-          text-white font-semibold text-xl mb-3 shadow-md overflow-hidden
-          ${isMale ? 'bg-blue-500' : 'bg-pink-500'}
-        `}
-      >
+      <div className="w-20 h-20 rounded-full mb-3 shadow-md overflow-hidden">
         {showPic ? (
           <img
             src={picUrl}
@@ -92,7 +81,7 @@ export default function MemberCard({
             }}
           />
         ) : (
-          <span>{initials}</span>
+          <DefaultAvatar gender={member.gender} className="w-full h-full rounded-full" />
         )}
       </div>
 

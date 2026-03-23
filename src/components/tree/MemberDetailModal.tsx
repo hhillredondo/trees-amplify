@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import { formatDateOnly, getYearFromDateOnly } from '@/utils/dateOnly'
+import DefaultAvatar from './DefaultAvatar'
 
 interface Props {
   readonly open: boolean
@@ -355,14 +356,7 @@ export default function MemberDetailModal({
                         onError={() => setImageError('pic')}
                       />
                     ) : (
-                      <div
-                        className={`w-full h-full flex items-center justify-center text-white text-3xl font-semibold ${
-                          member.gender === 'male' ? 'bg-blue-500' : 'bg-pink-500'
-                        }`}
-                      >
-                        {member.name.charAt(0)}
-                        {member.surname.charAt(0)}
-                      </div>
+                      <DefaultAvatar gender={member.gender} className="w-full h-full rounded-full" />
                     )}
                     {uploadingPic && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
