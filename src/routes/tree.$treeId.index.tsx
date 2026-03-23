@@ -290,26 +290,52 @@ function TreeViewPage() {
               </>
             )}
 
-            {/* ── Focused Member + Spouses Row ─────────────────────── */}
+            {/* ── Siblings + Focused Member + Spouses Row ──────────── */}
             <div className="relative w-full flex items-center min-h-[300px]">
-              {/* Focused member - absolutely centered with background to cover spouses */}
+              {/* Siblings container - left side, scrollable */}
+              {relations.siblings.length > 0 && (
+                <div
+                  className="absolute flex items-center overflow-x-auto overflow-y-hidden pl-4 spouse-scroll-container"
+                  style={{ right: '50%', marginRight: '140px', width: 'calc(50% - 140px)', direction: 'rtl' }}
+                >
+                  <div className="flex items-center gap-4 min-w-max" style={{ direction: 'ltr' }}>
+                    {[...relations.siblings]
+                      .sort((a, b) => {
+                        const dateA = new Date(a.born).getTime()
+                        const dateB = new Date(b.born).getTime()
+                        return dateA - dateB
+                      })
+                      .map((sibling) => (
+                        <div key={sibling.id} className="flex items-center gap-4 shrink-0">
+                          <MemberCard
+                            member={sibling}
+                            onClick={() => handleMemberClick(sibling.id)}
+                            onViewDetails={() => handleMemberCardClick(sibling.id)}
+                          />
+                          <div className="w-10 border-t-2 border-dashed border-[var(--color-border)]" />
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Focused member - absolutely centered with background to cover siblings/spouses */}
               <div className="absolute left-1/2 -translate-x-1/2 z-20">
                 <div className="bg-[var(--color-background)] px-3 py-2 -mx-3 -my-2 rounded-2xl">
                   <MemberCard
                     member={relations.member}
                     isFocused
-                    onClick={() => {}} // Already focused, no action needed
+                    onClick={() => {}}
                     onViewDetails={() => handleMemberCardClick(relations.member.id)}
                   />
                 </div>
               </div>
 
-              {/* Spouses container - only on right side, scrollable */}
+              {/* Spouses container - right side, scrollable */}
               <div className="absolute left-1/2 flex items-center overflow-x-auto overflow-y-hidden pr-4 spouse-scroll-container" style={{ width: 'calc(50% - 140px)', marginLeft: '140px' }}>
                 <div className="flex items-center gap-4 min-w-max">
                   {[...relations.spouses]
                     .sort((a, b) => {
-                      // Sort by marriage date (ascending - earliest first)
                       const dateA = new Date(a.married).getTime()
                       const dateB = new Date(b.married).getTime()
                       return dateA - dateB
@@ -392,7 +418,8 @@ function TreeViewPage() {
             {/* Empty hint when tree has only one member */}
             {relations.parents.length === 0 &&
               relations.spouses.length === 0 &&
-              relations.children.length === 0 && (
+              relations.children.length === 0 &&
+              relations.siblings.length === 0 && (
                 <p className="mt-8 text-sm text-[var(--color-text-tertiary)] text-center">
                   This is the first tree member. Expand the member to view details and add new members.
                 </p>

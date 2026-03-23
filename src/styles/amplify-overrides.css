@@ -18,6 +18,15 @@
   --amplify-radii-medium: var(--radius-md);
   --amplify-radii-large: var(--radius-lg);
   --amplify-fonts-default-variable: var(--font-sans);
+  --amplify-fonts-default-static: var(--font-sans);
+}
+
+/* Editorial serif for Amplify headings */
+[data-amplify-theme] h1,
+[data-amplify-theme] h2,
+[data-amplify-theme] h3,
+[data-amplify-theme] [class*="amplify-heading"] {
+  font-family: var(--font-serif);
 }
 
 /* Override specific Amplify components */

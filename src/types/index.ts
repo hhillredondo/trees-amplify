@@ -61,11 +61,16 @@ export interface SpouseInfo extends Member {
   divorced: ISODateString | null
 }
 
+export interface SiblingInfo extends Member {
+  siblingType: 'full' | 'half'
+}
+
 export interface DirectRelations {
   member: Member
   parents: Member[]
   children: Member[]
   spouses: SpouseInfo[]
+  siblings: SiblingInfo[]
 }
 
 // ─── Tree ────────────────────────────────────────────────────────────────────
