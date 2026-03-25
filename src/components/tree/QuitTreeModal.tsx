@@ -9,7 +9,7 @@ interface Props {
   treeName: string
 }
 
-export default function QuitTreeModal({ open, onClose, treeId, treeName }: Props) {
+export default function QuitTreeModal({ open, onClose, treeId: _treeId, treeName }: Props) {
   const navigate = useNavigate()
   const quitTree = useQuitTree()
   const [loading, setLoading] = useState(false)

@@ -16,8 +16,23 @@ jobs:
         with:
           node-version: 22
 
+      # Registry (npm/yarn proxy) sometimes returns 502; retry with backoff.
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        env:
+          YARN_NETWORK_TIMEOUT: 120000
+        run: |
+          for attempt in 1 2 3 4 5; do
+            echo "yarn install attempt $attempt/5"
+            if yarn install --frozen-lockfile; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "All install attempts failed."
+              exit 1
+            fi
+            echo "Install failed; retrying in $((attempt * 20))s..."
+            sleep $((attempt * 20))
+          done
 
       - name: Lint
         run: yarn lint

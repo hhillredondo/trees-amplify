@@ -12,7 +12,7 @@ import {
 import { getPartitionKey } from '@/services/flaskService'
 import type { Gender } from '@/types'
 import { subtractMonthsFromDateOnly } from '@/utils/dateOnly'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Mode = 'create-child' | 'create-parent' | 'create-spouse' | 'edit'
 
@@ -82,6 +82,22 @@ export default function MemberFormModal({
   const photosInputRef = useRef<HTMLInputElement>(null)
   const docsInputRef = useRef<HTMLInputElement>(null)
 
+  const reset = useCallback(() => {
+    setError(null)
+    setLoading(false)
+    setPicFile(null)
+    setPhotoFiles([])
+    setDocFiles([])
+    if (picInputRef.current) picInputRef.current.value = ''
+    if (photosInputRef.current) photosInputRef.current.value = ''
+    if (docsInputRef.current) docsInputRef.current.value = ''
+  }, [])
+
+  const handleClose = useCallback(() => {
+    reset()
+    onClose()
+  }, [reset, onClose])
+
   // ─── Escape key handler ───────────────────────────────────────────────
   useEffect(() => {
     if (!open) return
@@ -94,7 +110,7 @@ export default function MemberFormModal({
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [open])
+  }, [open, handleClose])
 
   // ─── Load existing member data for edit ────────────────────────────
   useEffect(() => {
@@ -129,22 +145,6 @@ export default function MemberFormModal({
   }, [isEdit, existingMember, open])
 
   // ─── Handlers ───────────────────────────────────────────────────────
-  function reset() {
-    setError(null)
-    setLoading(false)
-    setPicFile(null)
-    setPhotoFiles([])
-    setDocFiles([])
-    if (picInputRef.current) picInputRef.current.value = ''
-    if (photosInputRef.current) photosInputRef.current.value = ''
-    if (docsInputRef.current) docsInputRef.current.value = ''
-  }
-
-  function handleClose() {
-    reset()
-    onClose()
-  }
-
   function handlePicChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) {

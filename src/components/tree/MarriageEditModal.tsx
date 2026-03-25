@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUpdateSpouseRelation, useMember } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import type { Member, SpouseInfo } from '@/types'
@@ -42,6 +42,12 @@ export default function MarriageEditModal({
     }
   }, [open, currentMarried, currentDivorced])
 
+  const handleClose = useCallback(() => {
+    setError(null)
+    setLoading(false)
+    onClose()
+  }, [onClose])
+
   // Determine husband and wife based on gender
   const husband = member1?.gender === 'male' ? member1 : member2
   const wife = member1?.gender === 'female' ? member1 : member2
@@ -65,13 +71,7 @@ export default function MarriageEditModal({
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [open, loading])
-
-  function handleClose() {
-    setError(null)
-    setLoading(false)
-    onClose()
-  }
+  }, [open, loading, handleClose])
 
   async function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault()

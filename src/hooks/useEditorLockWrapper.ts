@@ -52,13 +52,7 @@ export function useEditorLockWrapper<TData, TVariables>(
       }
     }
 
-    // Now execute the mutation
-    try {
-      return await mutationFn(variables)
-    } catch (error) {
-      // Re-throw the error so the caller can handle it
-      throw error
-    }
+    return mutationFn(variables)
   }
 }
 
