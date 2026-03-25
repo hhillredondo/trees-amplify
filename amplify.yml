@@ -13,6 +13,8 @@ frontend:
         - nvm use 22
         - node -v
         - yarn install --frozen-lockfile
+        - yarn lint
+        - yarn test
     build:
       commands:
         - yarn build

@@ -1,12 +1,42 @@
-# React + Vite
+# Trees (Amplify + React)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Family tree frontend built with React 19, Vite 7, TanStack Router/Query, Tailwind CSS 4, and AWS Amplify.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+yarn install
+yarn dev
+```
 
-## Expanding the ESLint configuration
+## Tests
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+yarn test          # single run
+yarn test:watch    # watch mode
+yarn test:coverage # with coverage
+```
+
+## Lint
+
+```
+yarn lint
+```
+
+## Build
+
+```
+yarn build
+```
+
+## CI/CD
+
+- **`.github/workflows/test.yml`** — Runs lint + tests + build on every PR and push to `main`/`master`.
+- **`amplify.yml`** — Amplify Hosting pipeline; runs lint + tests before building for deploy.
+
+### Branch protection (manual setup)
+
+Enable these rules on `main`/`master` in GitHub repo Settings > Branches:
+
+1. **Require status checks to pass before merging** — select the `test` workflow job.
+2. **Require branches to be up to date before merging**.
