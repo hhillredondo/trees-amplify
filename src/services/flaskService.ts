@@ -39,7 +39,9 @@ export class HttpError extends Error {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_FLASK_API_URL || ''
+const BASE_URL = import.meta.env.DEV
+  ? import.meta.env.VITE_FLASK_API_URL || 'http://localhost:5000'
+  : 'https://api.trees-lab.com'
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const session = await fetchAuthSession()
