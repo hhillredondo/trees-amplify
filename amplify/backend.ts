@@ -1,5 +1,5 @@
 import { defineBackend } from "@aws-amplify/backend";
-import { RemovalPolicy } from "aws-cdk-lib";
+import { RemovalPolicy, Tags } from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as ssm from "aws-cdk-lib/aws-ssm";
@@ -20,6 +20,17 @@ const backend = defineBackend({
 
 // --- Custom resources (DynamoDB + SSM params); one stack per Amplify env (dev/prod) ---
 const customStack = backend.createStack("custom-resources");
+
+// Cost-allocation tag — Amplify Gen 2 creates one stack per feature, so tag each.
+for (const stack of [
+  backend.auth.stack,
+  backend.data.stack,
+  backend.storage.stack,
+  backend.customFunction.stack,
+  customStack,
+]) {
+  Tags.of(stack).add("Project", "trees-amplify");
+}
 
 // Literal path for SSM params (required: token-based names break pipeline assembly).
 // Amplify sets AWS_APP_ID and AWS_BRANCH in the build; sandbox uses branch or 'sandbox'.
