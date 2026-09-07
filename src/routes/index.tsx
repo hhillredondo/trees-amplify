@@ -59,7 +59,7 @@ function DashboardPage() {
                 <button
                   onClick={() => !hasReachedLimit && setShowCreateModal(true)}
                   disabled={hasReachedLimit}
-                  className="px-4 py-2 bg-[var(--color-accent)] text-white text-sm font-medium rounded-lg hover:bg-[var(--color-accent-hover)] transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--color-accent)]"
+                  className="px-4 py-2 bg-[var(--color-accent)] text-[var(--color-on-accent)] text-sm font-medium rounded-lg hover:bg-[var(--color-accent-hover)] transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[var(--color-accent)]"
                   title={hasReachedLimit ? `You have reached the limit of ${MAX_TREES} trees. You currently have access to ${trees.length} trees (as owner, editor, or viewer).` : undefined}
                 >
                   Create Tree

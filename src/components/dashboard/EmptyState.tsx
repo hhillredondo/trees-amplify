@@ -35,7 +35,7 @@ export default function EmptyState({ onCreateTree, disabled = false }: Props) {
         <div className="flex flex-col items-center gap-2">
           <button
             disabled
-            className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-lg font-medium opacity-50 cursor-not-allowed transition-colors shadow-sm"
+            className="px-6 py-3 bg-[var(--color-accent)] text-[var(--color-on-accent)] rounded-lg font-medium opacity-50 cursor-not-allowed transition-colors shadow-sm"
           >
             Create Your First Tree
           </button>
@@ -46,7 +46,7 @@ export default function EmptyState({ onCreateTree, disabled = false }: Props) {
       ) : (
         <button
           onClick={onCreateTree}
-          className="px-6 py-3 bg-[var(--color-accent)] text-white rounded-lg font-medium hover:bg-[var(--color-accent-hover)] transition-colors shadow-sm cursor-pointer"
+          className="px-6 py-3 bg-[var(--color-accent)] text-[var(--color-on-accent)] rounded-lg font-medium hover:bg-[var(--color-accent-hover)] transition-colors shadow-sm cursor-pointer"
         >
           Create Your First Tree
         </button>
