@@ -12,6 +12,16 @@
   --amplify-colors-font-tertiary: var(--color-text-tertiary);
   --amplify-colors-brand-primary-60: var(--color-accent);
   --amplify-colors-brand-primary-80: var(--color-accent-hover);
+
+  /* Amplify's interactive colours all resolve through the primary-* ramp, which
+     defaults to their teal. brand-primary-* alone does not cover it. */
+  --amplify-colors-primary-10: var(--color-surface);
+  --amplify-colors-primary-20: var(--color-border-subtle);
+  --amplify-colors-primary-40: var(--color-border);
+  --amplify-colors-primary-60: var(--color-text-secondary);
+  --amplify-colors-primary-80: var(--color-accent);
+  --amplify-colors-primary-90: var(--color-accent-hover);
+  --amplify-colors-primary-100: var(--color-accent);
   --amplify-colors-font-error: var(--color-error);
   --amplify-colors-background-error: transparent;
   --amplify-radii-small: var(--radius-sm);
@@ -47,11 +57,11 @@
   border-bottom-color: var(--color-border);
 }
 
-.amplify-tabs-item {
+.amplify-tabs__item {
   color: var(--color-text-secondary);
 }
 
-.amplify-tabs-item[data-state="active"] {
+.amplify-tabs__item--active {
   color: var(--color-accent);
   border-bottom-color: var(--color-accent);
 }
@@ -69,7 +79,7 @@
 
 .amplify-button--primary {
   background-color: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
 }
 
 .amplify-button--primary:hover {
