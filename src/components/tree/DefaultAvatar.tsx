@@ -26,7 +26,7 @@ function FemaleSilhouette() {
 
 export default function DefaultAvatar({ gender, className = '' }: DefaultAvatarProps) {
   return (
-    <div className={`flex items-center justify-center bg-white text-[var(--color-text-primary)] ${className}`}>
+    <div className={`flex items-center justify-center bg-[var(--color-text-primary)]/10 text-[var(--color-text-primary)] ${className}`}>
       {gender === 'male' ? <MaleSilhouette /> : <FemaleSilhouette />}
     </div>
   )
