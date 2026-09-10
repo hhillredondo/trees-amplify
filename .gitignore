@@ -33,3 +33,11 @@ dist-ssr
 amplify_outputs*
 !amplify_outputs.stub.json
 amplifyconfiguration*
+
+# AI assistant context and tooling, kept local
+.claude/
+CLAUDE.md
+AGENTS.md
+.cursor/
+.cursorrules
+.aider*
