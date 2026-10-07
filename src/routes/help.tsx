@@ -62,19 +62,15 @@ function HelpPage() {
             <ul className="list-disc list-inside space-y-2 ml-2">
               <li><strong>Parents</strong> - displayed above the focused member</li>
               <li><strong>Focused Member</strong> - centered in the view</li>
+              <li><strong>Siblings</strong> - displayed to the left of the focused member</li>
               <li><strong>Spouses</strong> - displayed to the right of the focused member</li>
               <li><strong>Children</strong> - displayed below the focused member</li>
             </ul>
-            <div className="bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/30 rounded-lg p-4 my-4">
-              <p className="text-[var(--color-text-primary)] font-medium mb-2">
-                ⚠️ Important Limitation: Siblings Are Not Visible
-              </p>
-              <p>
-                The tree view only shows <strong>direct relations</strong> of the focused member. 
-                <strong> Siblings are not displayed</strong> in the tree view. To see a sibling, you need to click on their shared parent 
-                and then navigate to the sibling, or use the search function to find them directly.
-              </p>
-            </div>
+            <p>
+              Click <strong>"Extended"</strong> in the top bar to also show <strong>grandparents</strong> above each parent,
+              and each parent's siblings (<strong>aunts and uncles</strong>) beside that parent. The extended view stays on
+              as you move between members until you click it again. Rows with more members than fit on screen scroll sideways.
+            </p>
             <p>
               To change the focus, click on any member card, or use the search bar at the top of the tree view to find and select a member.
             </p>
@@ -148,7 +144,7 @@ function HelpPage() {
                 Tree View Limitations
               </h3>
               <ul className="list-disc list-inside space-y-2 ml-2">
-                <li><strong>Siblings are not visible</strong> - Only direct relations (parents, children, spouses) are shown</li>
+                <li><strong>Close relatives only</strong> - Cousins, nieces, nephews and great-grandparents are not shown; focus on a closer relative to see them</li>
                 <li><strong>One focused member at a time</strong> - The tree is centered around a single person</li>
                 <li>Use the search function to quickly navigate between members</li>
               </ul>

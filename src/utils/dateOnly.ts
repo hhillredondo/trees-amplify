@@ -64,3 +64,8 @@ export function subtractMonthsFromDateOnly(dateStr: string, months: number): str
   const dd = String(day).padStart(2, '0')
   return `${year}-${mm}-${dd}`
 }
+
+/** Sort comparator: oldest first. */
+export function byBirthDate(a: { born: string }, b: { born: string }): number {
+  return new Date(a.born).getTime() - new Date(b.born).getTime()
+}

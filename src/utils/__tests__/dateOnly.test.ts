@@ -5,6 +5,7 @@ import {
   formatYearOnly,
   getYearFromDateOnly,
   subtractMonthsFromDateOnly,
+  byBirthDate,
 } from '../dateOnly'
 
 describe('parseDateOnly', () => {
@@ -88,5 +89,20 @@ describe('subtractMonthsFromDateOnly', () => {
 
   it('returns original string for invalid input', () => {
     expect(subtractMonthsFromDateOnly('bad', 3)).toBe('bad')
+  })
+})
+
+describe('byBirthDate', () => {
+  it('sorts oldest first across date-only and datetime strings', () => {
+    const people = [
+      { born: '1990-05-01' },
+      { born: '1850-01-01T00:00:00Z' },
+      { born: '1990-04-30' },
+    ]
+    expect([...people].sort(byBirthDate).map((p) => p.born)).toEqual([
+      '1850-01-01T00:00:00Z',
+      '1990-04-30',
+      '1990-05-01',
+    ])
   })
 })

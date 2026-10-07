@@ -1,5 +1,6 @@
 import {
   useQuery,
+  useQueries,
   useMutation,
   useQueryClient,
   type UseQueryOptions,
@@ -143,16 +144,31 @@ export function useMember(
   })
 }
 
+function directRelationsQuery(partitionKey: string | null, memberId: string | null) {
+  return {
+    queryKey: queryKeys.directRelations(partitionKey ?? '', memberId ?? ''),
+    queryFn: () => membersApi.directRelations(memberId!),
+    enabled: !!partitionKey && !!memberId,
+  }
+}
+
 export function useDirectRelations(
   partitionKey: string | null,
   memberId: string | null,
   options?: Partial<UseQueryOptions<DirectRelations>>,
 ) {
   return useQuery({
-    queryKey: queryKeys.directRelations(partitionKey ?? '', memberId ?? ''),
-    queryFn: () => membersApi.directRelations(memberId!),
-    enabled: !!partitionKey && !!memberId,
+    ...directRelationsQuery(partitionKey, memberId),
     ...options,
+  })
+}
+
+export function useDirectRelationsOfMany(
+  partitionKey: string | null,
+  memberIds: string[],
+) {
+  return useQueries({
+    queries: memberIds.map((id) => directRelationsQuery(partitionKey, id)),
   })
 }
 

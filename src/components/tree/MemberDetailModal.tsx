@@ -263,14 +263,14 @@ export default function MemberDetailModal({
           navigate({
             to: '/tree/$treeId',
             params: { treeId },
-            search: { memberId: relatedMember.id },
+            search: (prev) => ({ ...prev, memberId: relatedMember.id }),
           })
         } else if (treeId) {
           // If no related member, just navigate to tree without memberId
           navigate({
             to: '/tree/$treeId',
             params: { treeId },
-            search: { memberId: undefined },
+            search: (prev) => ({ ...prev, memberId: undefined }),
           })
         }
       }, 1500) // Show success message for 1.5 seconds

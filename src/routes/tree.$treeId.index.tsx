@@ -4,8 +4,10 @@ import { Route as treeRoute } from './tree.$treeId'
 import { useTrees, useMembers, useDirectRelations } from '@/hooks/useTreesApi'
 import { getPartitionKey } from '@/services/flaskService'
 import { resolveShortId } from '@/utils/shortId'
+import { byBirthDate } from '@/utils/dateOnly'
 import MemberCard from '@/components/tree/MemberCard'
 import MemberSearch from '@/components/tree/MemberSearch'
+import ExtendedParents from '@/components/tree/ExtendedParents'
 import DeleteTreeModal from '@/components/tree/DeleteTreeModal'
 import QuitTreeModal from '@/components/tree/QuitTreeModal'
 import MemberDetailModal from '@/components/tree/MemberDetailModal'
@@ -17,14 +19,17 @@ export const Route = createRoute({
   getParentRoute: () => treeRoute,
   path: '/',
   component: TreeViewPage,
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { memberId?: string; extended?: boolean } => ({
     memberId: (search.memberId as string) || undefined,
+    extended: search.extended === true || undefined,
   }),
 })
 
 function TreeViewPage() {
   const { treeId: shortId } = Route.useParams()
-  const { memberId: searchMemberId } = Route.useSearch()
+  const { memberId: searchMemberId, extended } = Route.useSearch()
   const navigate = useNavigate()
 
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -83,7 +88,16 @@ function TreeViewPage() {
     navigate({
       to: '/tree/$treeId',
       params: { treeId: shortId },
-      search: { memberId },
+      search: { memberId, extended },
+    })
+  }
+
+  function toggleExtended() {
+    navigate({
+      to: '/tree/$treeId',
+      params: { treeId: shortId },
+      search: { memberId: searchMemberId, extended: !extended || undefined },
+      replace: true,
     })
   }
 
@@ -161,6 +175,32 @@ function TreeViewPage() {
               onSelect={handleMemberClick}
             />
           )}
+
+          <button
+            onClick={toggleExtended}
+            aria-pressed={!!extended}
+            title="Show grandparents and aunts/uncles"
+            className={`text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors shrink-0 cursor-pointer ${
+              extended
+                ? 'bg-[var(--color-surface)] text-[var(--color-text-primary)]'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface)]'
+            }`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="m4.5 18.75 7.5-7.5 7.5 7.5m-15-6 7.5-7.5 7.5 7.5"
+              />
+            </svg>
+            <span className="hidden sm:inline">Extended</span>
+          </button>
 
           {isOwner && (
             <Link
@@ -262,7 +302,14 @@ function TreeViewPage() {
         ) : (
           <div className="flex flex-col items-center justify-center min-h-full py-8 px-6 animate-in fade-in duration-300">
             {/* ── Parents Row ──────────────────────────────────────── */}
-            {relations.parents.length > 0 && (
+            {relations.parents.length > 0 && (extended ? (
+              <ExtendedParents
+                partitionKey={partitionKey}
+                parents={relations.parents}
+                onFocus={handleMemberClick}
+                onViewDetails={handleMemberCardClick}
+              />
+            ) : (
               <>
                 <div className="flex items-end justify-center gap-4">
                   {relations.parents.map((parent, idx) => (
@@ -288,7 +335,7 @@ function TreeViewPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-border)]" />
                 </div>
               </>
-            )}
+            ))}
 
             {/* ── Siblings + Focused Member + Spouses Row ──────────── */}
             <div className="relative w-full flex items-center min-h-[300px]">
@@ -300,11 +347,7 @@ function TreeViewPage() {
                 >
                   <div className="flex items-center gap-4 min-w-max" style={{ direction: 'ltr' }}>
                     {[...relations.siblings]
-                      .sort((a, b) => {
-                        const dateA = new Date(a.born).getTime()
-                        const dateB = new Date(b.born).getTime()
-                        return dateA - dateB
-                      })
+                      .sort(byBirthDate)
                       .map((sibling) => (
                         <div key={sibling.id} className="flex items-center gap-4 shrink-0">
                           <MemberCard
